@@ -55,9 +55,12 @@ visual inspection.
 
 For each of the up to three chains, you have to connect `GND`, `strobe`,
 `clock`, `OE-`, `A`, `B`, `C`, `D` to all of these (the `D` line is needed
-for 32x32 displays; 32x16 displays don't need it); you find the positions
-below (there are more GND pins on the Raspberry Pi, but they are left out
-for simplicity).
+for 32x32 displays; 32x16 displays don't need it). If you have a 64x64 display,
+these have an additional `E` line which is typically on Pin 4 or 8 on the
+matrix connector.
+You find the positions of the pins on the Raspberry Pi and the corresponding
+logical connections in the table below (there are more GND pins on the
+Raspberry Pi, but they are left out for simplicity).
 
 Then for each panel, there is a set of (R1, G1, B1, R2, G2, B2) that you have
 to connect to the corresponding pins that are marked `[1]`, `[2]` and `[3]` for
@@ -71,28 +74,28 @@ icon:
 `[1]`=:smile:, `[2]`=:boom: and `[3]`=:droplet: ; signals that go to all
 chains have all icons.
 
-Connection                        | Pin | Pin |  Connection
----------------------------------:|:---:|:---:|:-----------------------------
-                             -    |   1 |   2 | -
-             :droplet: **[3] G1** |   3 |   4 | -
-             :droplet: **[3] B1** |   5 |   6 | **GND** :smile::boom::droplet:
-:smile::boom::droplet: **strobe** |   7 |   8 | **[3] R1** :droplet:
-                              -   |   9 |  10 | **E**    :smile::boom::droplet: (for 64 row matrix, 1:32)
-:smile::boom::droplet: **clock**  |  11 |  12 | **OE-**  :smile::boom::droplet:
-              :smile:  **[1] G1** |  13 |  14 | -
-:smile::boom::droplet:      **A** |  15 |  16 | **B**    :smile::boom::droplet:
-                             -    |  17 |  18 | **C**    :smile::boom::droplet:
-              :smile:  **[1] B2** |  19 |  20 | -
-              :smile:  **[1] G2** |  21 |  22 | **D**    :smile::boom::droplet: (for 32 row matrix, 1:16)
-              :smile:  **[1] R1** |  23 |  24 | **[1] R2** :smile:
-                             -    |  25 |  26 | **[1] B1** :smile:
-                             -    |  27 |  28 | -
-              :boom:   **[2] G1** |  29 |  30 | -
-              :boom:   **[2] B1** |  31 |  32 | **[2] R1** :boom:
-              :boom:   **[2] G2** |  33 |  34 | -
-              :boom:   **[2] R2** |  35 |  36 | **[3] G2** :droplet:
-              :droplet:**[3] R2** |  37 |  38 | **[2] B2** :boom:
-                              -   |  39 |  40 | **[3] B2** :droplet:
+|Connection                        | Pin | Pin |  Connection
+|---------------------------------:|:---:|:---:|:-----------------------------
+|                             -    |   1 |   2 | -
+|             :droplet: **[3] G1** |   3 |   4 | -
+|             :droplet: **[3] B1** |   5 |   6 | **GND** :smile::boom::droplet:
+|:smile::boom::droplet: **strobe** |   7 |   8 | **[3] R1** :droplet:
+|                              -   |   9 |  10 | **E**    :smile::boom::droplet: (for 64 row matrix, 1:32)
+|:smile::boom::droplet: **clock**  |  11 |  12 | **OE-**  :smile::boom::droplet:
+|              :smile:  **[1] G1** |  13 |  14 | -
+|:smile::boom::droplet:      **A** |  15 |  16 | **B**    :smile::boom::droplet:
+|                             -    |  17 |  18 | **C**    :smile::boom::droplet:
+|              :smile:  **[1] B2** |  19 |  20 | -
+|              :smile:  **[1] G2** |  21 |  22 | **D**    :smile::boom::droplet: (for 32 row matrix, 1:16)
+|              :smile:  **[1] R1** |  23 |  24 | **[1] R2** :smile:
+|                             -    |  25 |  26 | **[1] B1** :smile:
+|                             -    |  27 |  28 | -
+|              :boom:   **[2] G1** |  29 |  30 | -
+|              :boom:   **[2] B1** |  31 |  32 | **[2] R1** :boom:
+|              :boom:   **[2] G2** |  33 |  34 | -
+|              :boom:   **[2] R2** |  35 |  36 | **[3] G2** :droplet:
+|              :droplet:**[3] R2** |  37 |  38 | **[2] B2** :boom:
+|                              -   |  39 |  40 | **[3] B2** :droplet:
 
 In the [adapter/](./adapter) directory, there are some boards that make
 the wiring task simpler.
@@ -107,6 +110,55 @@ create a larger panel. Here a schematic view, below in the 'Power' section, you
 can see a real-live panel with three chains of 5 panels each seen from the back.
 
 ![Coordinate overview][coordinates]
+
+### Alternative Hardware Mappings
+
+The hardware mapping described above is the 'regular' hardware mapping, which
+is the default for this library. However, there are alternative hardware
+mappings to choose from, e.g. Adafruit sells a board where they choose a
+different mapping.
+You can choose with the `--led-gpio-mapping` flag.
+
+If you got an adapter board that is from some unknown source and you don't
+get any output: double check the GPIO mappings they use.
+
+You have relative freedom to assign any pins to the output of your choosing,
+just add a new mapping in [lib/hardware-mapping.c](lib/hardware-mapping.c),
+recompile and it will be provided as a new option in `--led-gpio-mapping`.
+
+<details><summary>Table: GPIO-pins for each hardware mapping</summary>
+
+|         | regular | adafruit-hat | adafruit-hat-pwm | regular-pi1 | classic | classic-pi1 |
+----------|---------|--------------|------------------|-------------|---------|-------------|
+Parallel chains|        3|             1|                 1|            1|        3|            1|
+~OE       |GPIO 18  |GPIO 4        |GPIO 18           |GPIO 18      |GPIO 27  |GPIO 0       |
+Clock     |GPIO 17  |GPIO 17       |GPIO 17           |GPIO 17      |GPIO 11  |GPIO 1       |
+Strobe    |GPIO 4   |GPIO 21       |GPIO 21           |GPIO 4       |GPIO 4   |GPIO 4       |
+A         |GPIO 22  |GPIO 22       |GPIO 22           |GPIO 22      |GPIO 7   |GPIO 7       |
+B         |GPIO 23  |GPIO 26       |GPIO 26           |GPIO 23      |GPIO 8   |GPIO 8       |
+C         |GPIO 24  |GPIO 27       |GPIO 27           |GPIO 24      |GPIO 9   |GPIO 9       |
+D         |GPIO 25  |GPIO 20       |GPIO 20           |GPIO 25      |GPIO 10  |GPIO 10      |
+E         |GPIO 15  |GPIO 24       |GPIO 24           |GPIO 15      |        -|            -|
+Chain 1/R1|GPIO 11  |GPIO 5        |GPIO 5            |GPIO 11      |GPIO 17  |GPIO 17      |
+Chain 1/G1|GPIO 27  |GPIO 13       |GPIO 13           |GPIO 21      |GPIO 18  |GPIO 18      |
+Chain 1/B1|GPIO 7   |GPIO 6        |GPIO 6            |GPIO 7       |GPIO 22  |GPIO 22      |
+Chain 1/R2|GPIO 8   |GPIO 12       |GPIO 12           |GPIO 8       |GPIO 23  |GPIO 23      |
+Chain 1/G2|GPIO 9   |GPIO 16       |GPIO 16           |GPIO 9       |GPIO 24  |GPIO 24      |
+Chain 1/B2|GPIO 10  |GPIO 23       |GPIO 23           |GPIO 10      |GPIO 25  |GPIO 25      |
+Chain 2/R1|GPIO 12  |             -|                 -|            -|GPIO 12  |            -|
+Chain 2/G1|GPIO 5   |             -|                 -|            -|GPIO 5   |            -|
+Chain 2/B1|GPIO 6   |             -|                 -|            -|GPIO 6   |            -|
+Chain 2/R2|GPIO 19  |             -|                 -|            -|GPIO 19  |            -|
+Chain 2/G2|GPIO 13  |             -|                 -|            -|GPIO 13  |            -|
+Chain 2/B2|GPIO 20  |             -|                 -|            -|GPIO 20  |            -|
+Chain 3/R1|GPIO 14  |             -|                 -|            -|GPIO 14  |            -|
+Chain 3/G1|GPIO 2   |             -|                 -|            -|GPIO 2   |            -|
+Chain 3/B1|GPIO 3   |             -|                 -|            -|GPIO 3   |            -|
+Chain 3/R2|GPIO 26  |             -|                 -|            -|GPIO 15  |            -|
+Chain 3/G2|GPIO 16  |             -|                 -|            -|GPIO 26  |            -|
+Chain 3/B2|GPIO 21  |             -|                 -|            -|GPIO 21  |            -|
+
+</details>
 
 
 A word about power
